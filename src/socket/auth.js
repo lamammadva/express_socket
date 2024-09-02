@@ -1,6 +1,6 @@
 function socketAuth(socket){
     socket.on('auth',(nickName)=>{
-        if (nickName.length >= 2) {
+        if (nickName.length >= 1) {
             socket.user = { nickName };
             socket.emit('auth_success',{nickName});
         } else {
