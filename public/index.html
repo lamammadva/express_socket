@@ -1,148 +1,139 @@
-    <!DOCTYPE html>
-    <html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Socket.Io Tutorials</title>
-        <script src="https://cdn.tailwindcss.com"></script>
-        <script src="/socket.io/socket.io.js"></script>
-        <style>
-            #message_container {
-                display: flex;
-                flex-direction: column;
-                height: 400px; /* İhtiyacınıza göre ayarlayın */
-                overflow-y: auto;
-                padding: 10px;
-            }
-            .message {
-                margin-bottom: 10px;
-            }
-            .message-you {
-            align-self: flex-start;
-            display: flex;
-            flex-direction: column;
-        }
-        
-    
-    
-        .message-me {
-            align-self: flex-end;
-            display: flex;
-            flex-direction: column;
-        }
-        
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socket.Io Tutorials</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/socket.io/socket.io.js"></script>
 
-        </style>
-    </head>
+</head>
 
-    <body>
-        
-        <div id="auth"
-        
-            class="flex flex-col items-start p-10 gap-5 rounded-md w-[500px] h-[300px] mt-[18%] m-auto border border-sky-600 text-white">
+<body class="">
+    <!-- <div id ="home" class=" w-full max-w-lg sm:max-w-xl mx-auto bg-teal-800 h-[663px] p-[10px] gap-5 overflow-y-auto">
+            <div class="m-5 flex flex-col gap-7 font-mono	">
+                <h1 class="text-white text-3xl tracking-wider leading-10">Nice to <br>meet you,
+                     <br>we  will <br>chat soon.</h1>
+                <p class="text-white mt-[30%] ">Do you want to join the chat?</p>
+                <button onclick="home()" class="text-white bg-slate-950 w-[70%] mt-8 p-3 ms-[30%]" type="submit">Registration page</button>
+
+            </div>
             
-            <label class="text-black" for="name">Enter your name</label>
-            <input class="border bg-white w-[300px] rounded px-3 p-2 text-slate-600" name="name" id="nickName" placeholder="Username" />
-            <button onclick="logIn()" type="submit" class="bg-indigo-500 rounded-md w-12 p-2 w-[20%] border-none ">
+
+        </div> -->
+    <div id="auth"
+        class=" hidden w-full max-w-lg sm:max-w-xl  mx-auto  flex flex-col items-start p-10 gap-5  rounded-md h-[663px] p-[10px] overflow-y-auto  border bg-teal-800 text-white">
+        <div class="m-8 mt-[40%]">
+
+            <label class="text-white text-xl " for="name">Enter your name please...</label>
+            <input class="focus:outline-none border-b-2 mt-[10%] bg-teal-800 w-[300px] px-3 p-2 text-slate-100"
+                name="name" id="nickName" placeholder="Username" />
+            <button onclick="logIn()" type="submit"
+                class="bg-slate-950	mt-[30%] w-[40%] ms-[60%] p-2 w-[20%] border-none ">
                 Enter
             </button>
         </div>
-        <div id="chatbox" class="hidden flex flex-col ">
-            <div class="rounded-t-[20px] p-8 mx-[30%] bg-indigo-600 text-white mt-5 text-2xl ">Chatbox</div>
-            <div class="border border-sky-600  p-8 mx-[30%] rounded-b-lg ">
-
-                <div id="message_container" class="message_container">
-                    <!-- Mesajlar buraya eklenecek -->
-                </div>
-
-                <div class="mt-7 flex">
-                    <input type="text" id="message"
-                        class=" block w-full rounded-l-lg border-0 py-6 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                        placeholder="Message...">
-                    <button onclick="sendMessage()" class="bg-indigo-500 w-20 rounded-r-[15px]">
-                        Send
-                    </button>
-
-                </div>
+    </div>
+    <div id="chatbox"
+        class=" max-w-lg sm:max-w-xl mx-auto  rounded-t-[20px] rounded-b-lg overflow-hidden flex flex-col  border border-teal-800 border-t-0  h-[663px]">
+        <div class="rounded-t-[20px]    p-8 bg-teal-800  text-white text-2xl">Chatbox</div>
+            <div id="message_container" class="flex flex-col  flex-grow  overflow-y-auto px-px"></div>
+            <div class=" flex m-5 ">
+                <input type="text" id="message"
+                    class="  border-l-none  w-full  rounded-l-lg border-0 py-8 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 "
+                    placeholder="Message..."><button onclick="sendMessage()"
+                    class="bg-teal-800 w-20 rounded-r-[15px]  text-white hover:bg-teal-900">
+                    Send
+                </button>
             </div>
+    </div>
+
+    <script>
+        const socket = io('/');
+        let nickName = "";
+        socket.on('connect', () => {
+            console.log("connect is successful");
+        })
+        socket.on('auth_success', (message) => {
+            document.getElementById("chatbox").style.display = "flex";
+        });
+
+        socket.on('new_message', (data) => {
+            const messageContainer = document.getElementById('message_container');
+            let messageHtml = '';
+            let messageTimes = new Date(data.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+            if (data.nickName === nickName) {
+                messageHtml = `
+                       <div class=" flex  flex-col self-end ml-6 mr-4 m-5 max-w-xs">
+                            <h7 class="text-sm flex flex-row-reverse text-gray-500	">Me</h7>
+                            <p class="border p-5  rounded-tr-[40px] rounded-l-[40px] bg-teal-800  text-white ms-1 break-all">${message.value}</p>
+                            <h6 class="text-sm flex flex-row-reverse text-gray-500	">${messageTimes}</h6>
+                        </div>
+                    `;
+            } else {
+                messageHtml = `
+                        <div class=" flex flex-col self-start ml-6 mr-4 m-5 max-w-xs">
+                            <h7 class="name text-sm flex flex-row-reverse">${data.nickName}</h7>
+                            <p class="border  p-5  rounded-bl-[40px] rounded-r-[40px] bg-teal-800  text-white ms-1 break-all">${data.message}</p>
+                            <h6 class="text-sm flex flex-row-reversetext-gray-500	">${messageTimes}</h6>
+                        </div>
+                    `;
+            }
+
+            messageContainer.innerHTML += messageHtml;
+            setTimeout(() => {
+                messageContainer.scrollTop = messageContainer.scrollHeight;
+            }, 100);
+        });
+        // function home(){
+        //     document.getElementById("home").style.display = "none";
+        //     document.getElementById("auth").style.display = "flex";
 
 
-        </div>
-        <script>
-            const socket = io('/');
-            let nickName = "";
-            socket.on('connect', () => {
-                console.log("connect is successful");
-            })
-            socket.on('auth_success', (message) => {
-                document.getElementById("auth").style.display = "none";
-                document.getElementById("chatbox").style.display = "flex";
-            });
-            
-            socket.on('new_message', (data) => {
+        // }
+
+        function logIn() {
+            nickName = document.getElementById("nickName").value;
+            if (nickName.length >= 1) {
+                socket.emit("auth", nickName);
+            } else {
+                alert("Nickname must be at least 1 characters long.");
+                document.getElementById("auth").style.display("block")
+            }
+            document.getElementById("auth").style.display = "none";
+        }
+
+        function sendMessage() {
+            let message = document.getElementById("message");
+            if (message.value.trim().length >= 1) {
+                socket.emit("message", message.value);
+                let messageTimes = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+
+
+
                 const messageContainer = document.getElementById('message_container');
-                let messageHtml = '';
-
-                if (data.nickName === nickName) {
-                    // Kullanıcının kendi mesajı
-                    messageHtml = `
-                        <div class="message message-me">
-                            <h7 class="text-sm flex flex-row-reverse">Me</h7>
-                            <p class="border  p-5 rounded-r-[28px] rounded-bl-[30px] bg-indigo-500 w-48 text-white ms-1">${data.message}</p>
-                            <h6 class="text-sm flex flex-row-reverse">12:00 AM</h6>
+                let messageHtml = `
+                        <div class=" flex flex-col self-end ml-6 mr-4 m-5 max-w-xs">
+                            <h7 class="text-sm flex flex-row-reverse text-gray-500	">Me</h7>
+                            <p class="border p-5  rounded-l-[40px] rounded-tr-[40px] bg-teal-800  text-white ms-1 break-all  ">${message.value}</p>
+                            <h6 class="text-sm flex flex-row-reverse text-gray-500	">${messageTimes}</h6>
                         </div>
                     `;
-                } else {
-                    // Diğer kullanıcının mesajı
-                    messageHtml = `
-                        <div class="message message-you">
-                            <h7 class="name text-sm">${data.nickName}</h7>
-                            <p class="border  p-5 rounded-r-[28px] rounded-bl-[30px] bg-indigo-500 w-48 text-white ms-1">${data.message}</p>
-                            <h6 class="text-sm">12:00 AM</h6>
-                        </div>
-                    `;
-                }
-
                 messageContainer.innerHTML += messageHtml;
-                messageContainer.scrollTop = messageContainer.scrollHeight; // Mesajların görünmesini sağla
-            });
+                setTimeout(() => {
+                    messageContainer.scrollTop = messageContainer.scrollHeight;
+                }, 100);
 
-            function logIn() {
-                nickName = document.getElementById("nickName").value;
-                if (nickName.length >= 1) {
-                    socket.emit("auth", nickName);
-                } else {
-                    alert("Nickname must be at least 2 characters long.");
-                }
-                document.getElementById("auth").style.display = "none";
+                message.value = "";
+            } else {
+                alert("1 herfden az mesaj yazma!");
             }
-
-            function sendMessage() {
-                let message = document.getElementById("message");
-                if (message.value.trim().length >= 1) {
-                    socket.emit("message", message.value);
-
-                    const messageContainer = document.getElementById('message_container');
-                    let messageHtml = `
-                        <div class="message message-me">
-                            <h7 class="text-sm flex flex-row-reverse">Me</h7>
-                            <p class="border  p-5 rounded-l-[28px] rounded-br-[35px] bg-indigo-500 w-48 text-white ms-1">${message.value}</p>
-                            <h6 class="text-sm flex flex-row-reverse">12:00 AM</h6>
-                        </div>
-                    `;
-                    messageContainer.innerHTML += messageHtml;
-                    messageContainer.scrollTop = messageContainer.scrollHeight; // Mesajların görünmesini sağla
-
-                    message.value = "";
-                } else {
-                    alert("3 herfden az mesaj yazma!");
-                }
-            }
-        </script>
+        }
+    </script>
 
 
 
-    </body>
+</body>
 
-    </html>
+</html>

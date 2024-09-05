@@ -5,6 +5,7 @@ function socketAuth(socket){
             socket.emit('auth_success',{nickName});
         } else {
             socket.emit('auth_error', 'Nickname must be at least 2 characters long.');
+            
         }
     });
 }
